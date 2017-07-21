@@ -11,12 +11,7 @@ def get_organization_repo_names(base_url, organization_name):
 	url = base_url + ('orgs/{0}/repos').format(organization_name)
 	response_data = get_json_response(url)
 	return [repo['name'] for repo in response_data]
-
-
-def get_page_of_pull_requests(base_url, owner_name, repo_name, page_number):
-	url = base_url + ('repos/{0}/{1}/pulls?state=all&page={2}').format(owner_name, repo_name, page_number)
-	return get_json_response(url)
-
+	
 
 def get_last_url_of_paginated(url):
 	response = requests.head(url)
