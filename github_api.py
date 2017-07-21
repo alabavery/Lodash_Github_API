@@ -11,17 +11,17 @@ def get_organization_repo_names(base_url, organization_name):
 	url = base_url + ('orgs/{0}/repos').format(organization_name)
 	response_data = get_json_response(url)
 	return [repo['name'] for repo in response_data]
-	
+
 
 def get_last_url_of_paginated(url):
 	response = requests.head(url)
 	return response.links['last']['url']
 
 
-def get_repo_pull_requests(base_url, owner_name, repo_name):
+def generate_repo_pull_requests(base_url, owner_name, repo_name):
 	url = base_url + ('repos/{0}/{1}/pulls?state=all').format(owner_name, repo_name)
 	last_url = get_last_url_of_paginated(url)
-	page = 1
+	page_number = 1
 
 	while True:
 		page_url = base_url + ('repos/{0}/{1}/pulls?state=all&page={2}').format(owner_name, repo_name, page_number)
