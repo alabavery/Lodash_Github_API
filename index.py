@@ -1,10 +1,24 @@
-import pprint
 import github_api as gapi
+import json
+import os
+
+
+def save_as_json_file(file_path, data):
+	json_to_save = json.dumps(data)
+	file = open(file_path,'w')
+	file.write(json_to_save)
+	file.close()
+
 
 BASE_URL = 'https://api.github.com/'
-
 lodash_repo_names = gapi.get_organization_repo_names(BASE_URL, 'lodash')
-lodash_pull_request_data = [gapi.get_repo_pull_request_data(BASE_URL, 'lodash', repo) for repo in lodash_repo_names]
+print("Got repo names")
+base_path = os.path.dirname(os.path.realpath(__file__))
 
-pp = pprint.PrettyPrinter(indent=4)
-pp.pprint(lodash_pull_request_data[0]) # print a lodash repo as an example
+for i, repo in enumerate(lodash_repo_names):
+	file_path = os.path.join(base_path, repo) + '.json'
+	
+	if not os.path.isfile(file_path): # check if we've already saved this repo (this might not be the first time we've run program)
+		pulls = gapi.get_all_repo_pull_requests(BASE_URL, 'lodash', repo)
+		save_as_json_file(file_path, pulls)
+	print(str(i+1) + " repo(s) down...")
