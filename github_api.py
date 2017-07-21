@@ -9,7 +9,6 @@ def wait_until_wifi_is_connected():
 		try:
 			host = socket.gethostbyname('www.google.com')
 			s = socket.create_connection((host, 80), 2)
-			print("wifi is connected")
 			return
 		except:
 			time.sleep(30)
@@ -37,7 +36,6 @@ def get_organization_repo_ids(base_url, organization_name):
 def get_last_url_of_paginated(url):
 	response = requests.head(url)
 	last_link = response.links.get('last')
-	print('last page of current: ', last_link)
 
 	if not last_link: # response.links will be empty dict if only one page, so we manually return url of page 1
 		return url + '&page=1'
