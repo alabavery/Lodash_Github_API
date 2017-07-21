@@ -1,8 +1,28 @@
 import requests
 import json
+import time
+
+
+# my wifi can sometimes cut off and back on, would hate to lose progress due to that
+def wait_until_wifi_is_connected():
+	while True:
+		try:
+			host = socket.gethostbyname('www.google.com')
+			s = socket.create_connection((host, 80), 2)
+			return
+		except:
+			time.sleep(30)
+	
 
 def get_json_response(url):
-	response = requests.get(url)
+	wait_until_wifi_is_connected()
+	response = requests.get(url, headers={'User-Agent': 'alabavery'})
+	
+	if response.headers.get('status') == '403 Forbidden':
+		print("Rate limit exceeded... waiting one hour :(")
+		time.sleep(3600) # Wait 3600 seconds (one hour) before making request again
+		return get_json_response(url)
+
 	response.raise_for_status()
 	return json.loads(response.text)
 
@@ -15,9 +35,14 @@ def get_organization_repo_names(base_url, organization_name):
 
 def get_last_url_of_paginated(url):
 	response = requests.head(url)
+	last_link = response.links.get('last')
+
+	if not last_link: # response.links will be empty dict if only one page, so we manually return url of page 1
+		return url + '&page=1'
 	return response.links['last']['url']
 
 
+# creates a generator that yields one page of results at a time
 def generate_repo_pull_requests(base_url, owner_name, repo_name):
 	url = base_url + ('repos/{0}/{1}/pulls?state=all').format(owner_name, repo_name)
 	last_url = get_last_url_of_paginated(url)
@@ -26,15 +51,15 @@ def generate_repo_pull_requests(base_url, owner_name, repo_name):
 	while True:
 		page_url = base_url + ('repos/{0}/{1}/pulls?state=all&page={2}').format(owner_name, repo_name, page_number)
 		yield get_json_response(page_url)
-		page += 1
+		page_number += 1
 
 		if page_url == last_url:
 			return
 
 
-def get_pull_request_by_id(repo_pull_request_data, request_id):
-	record_as_list = [record for record in repo_pull_request_data if record['id'] == request_id]
-	try:
-		return record_as_list[0] # this is a dict
-	except IndexError:
-		return {} # caller expects dict, so give it to them even though no record
+# returns a list of ALL results
+def get_all_repo_pull_requests(base_url, owner_name, repo_name):
+	all_pulls = []
+	for page_of_pulls in generate_repo_pull_requests(base_url, owner_name, repo_name):
+		all_pulls.extend(page_of_pulls)
+	return all_pulls
