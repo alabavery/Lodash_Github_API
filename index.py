@@ -11,12 +11,11 @@ def save_as_json_file(file_path, data):
 
 
 BASE_URL = 'https://api.github.com/'
-#lodash_repo_ids = gapi.get_organization_repo_names(BASE_URL, 'lodash')
-lodash_repo_ids = ['57350423']
+lodash_repo_ids = gapi.get_organization_repo_ids(BASE_URL, 'lodash')
 base_path = os.path.dirname(os.path.realpath(__file__))
 
 for i, repo in enumerate(lodash_repo_ids):
-	file_path = os.path.join(base_path, repo) + '.json'
+	file_path = os.path.join(base_path, str(repo)) + '.json'
 	
 	if not os.path.isfile(file_path): # check if we've already saved this repo (this might not be the first time we've run program)
 		pulls = gapi.get_all_repo_pull_requests(BASE_URL, repo)
